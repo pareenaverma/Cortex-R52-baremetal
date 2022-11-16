@@ -1,0 +1,48 @@
+# Copyright (C) ARM Limited, 2010-2012. All rights reserved.
+#
+# This makefile is intended to allow command-line users to build this project outside of Eclipse
+# This makefile is NOT used by the Eclipse managed builder project (which creates its own makefiles)
+#
+# This makefile is intended for use with GNU make
+# This example is intended to be built with ARM Compiler 6
+
+CC=armclang
+AS=armclang
+LD=armlink
+AR=armar
+FE=fromelf
+
+# Select build rules based on Windows or Unix
+ifdef WINDIR
+DONE=@if exist $(1) echo Build completed.
+RM=if exist $(1) del /q $(1)
+SHELL=$(WINDIR)\system32\cmd.exe
+else
+ifdef windir
+DONE=@if exist $(1) echo Build completed.
+RM=if exist $(1) del /q $(1)
+SHELL=$(windir)\system32\cmd.exe
+else
+DONE=@if [ -f $(1) ]; then echo Build completed.; fi
+RM=rm -f $(1)
+endif
+endif
+
+# Undefine the line below if hardware floating point is not present
+VFP=__TARGET_FPU_VFP
+
+# Undefine the line below for ARM
+THUMB=-D__THUMB__ -mthumb
+
+ifeq ($(VFP), __TARGET_FPU_VFP)
+CCOPT =--target=arm-arm-none-eabi -mcpu=cortex-r52 -O0 -g -gdwarf-3 -mfpu=neon-fp-armv8 -mfloat-abi=hard -D$(VFP) -D__ARMCLANG__ $(THUMB)
+ASFLAG=--target arm-arm-none-eabi -g -mcpu=cortex-r52 -mfpu=neon-fp-armv8 -mfloat-abi=hard -D$(VFP) -D__ARMCLANG__ -c -x assembler-with-cpp $(THUMB)
+LDFLAG=--cpu=8-R
+else
+CCOPT =--target=arm-arm-none-eabi -mcpu=cortex-r52 -O0 -g -gdwarf-3 -mfpu=none -D__ARMCLANG__ $(THUMB)
+ASFLAG=--target arm-arm-none-eabi -mcpu=cortex-r52 -g -mfpu=none -D__ARMCLANG__ -c -x assembler-with-cpp $(THUMB)
+LDFLAG=--cpu=8-R --fpu=softvfp
+endif
+
+# Enable use of TCM in assembler code. TCM memory should be present in scatter file.
+#APD=-DTCM

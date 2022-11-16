@@ -1,0 +1,48 @@
+;*******************************************************
+; Copyright (c) 2016 ARM Ltd.  All rights reserved.
+;*******************************************************
+
+; Scatter-file for Cortex-R52 bare-metal example
+; Addresses suitable for targets with RAM at 0x0
+; Change these addresses to match the RAM on your own target
+
+LOAD 0x200000
+{
+    INIT +0x0 0x100000						; Mapped on the Cortex-R52 FLASH port
+    {
+		startup.o (VECTORS, +First)         ; Vectors
+        startup.o (RESET)         			; Startup code
+        * (InRoot$$Sections)                ; All library sections that must be in a root region
+        main.o (+RO)                        ; Place main() in a root region for the benefit of software breakpoints
+    }
+
+ 	CODE 0x2000000 0x8000
+    {
+        * (+RO)                             ; Application code, including C library
+    }
+
+    DATA 0x2008000 0x4000
+    {
+        * (+RW,+ZI)                         ; All RW and ZI Data
+    }
+
+    ARM_LIB_STACKHEAP 0x200C000 EMPTY 0x4000  ; 16KB stack and heap
+    {
+    }
+
+; Cortex-R52 optionally provides three Tightly-Coupled Memory (TCM) blocks (ATCM, BTCM and CTCM)
+; Use these regions to place code and/or data in TCM:
+;   ATCM 0xB0000000 EMPTY 0x4000 
+;	{ 
+;		;sorts.o (+RO) 
+;	}
+;   BTCM 0xB0010000 EMPTY 0x4000 
+;	{ 
+;	}
+;   CTCM 0xB0020000 EMPTY 0x4000
+;	{ 
+;	}
+; Scatterloading can be used to copy code and/or data into the TCMs
+	
+
+}
